@@ -12,8 +12,8 @@ import java.util.List;
 
 public class JdbcEventDaoTests extends BaseDaoTests {
     public static final Event EVENT_1 = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, "message 1");
-    public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), false, "message 2");
-    public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), false, "message 3");
+    public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), true, "message 2");
+    public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), true, "message 3");
     List<Event> events = new ArrayList<>();
     private JdbcEventDao dao;
 
@@ -28,6 +28,21 @@ public class JdbcEventDaoTests extends BaseDaoTests {
         events = dao.getAllEvents();
         Assert.assertNotNull("getAllEvents() returned null instead of an empty list", events);
         Assert.assertEquals("getAllEvents() did not return correct number of events", 3, events.size());
+    }
+
+    @Test
+    public void getEventById_returns_correct_event() {
+        Event event1 = dao.getEventById(EVENT_1.getEventId());
+        Assert.assertNotNull("getEventById() returned null instead of an event", event1);
+        assertEventsMatch("getEventById(1)", EVENT_1, event1);
+
+        Event event2 = dao.getEventById(EVENT_2.getEventId());
+        Assert.assertNotNull("getEventById() returned null instead of an event", event2);
+        assertEventsMatch("getEventById(2)", EVENT_2, event2);
+
+        Event event3 = dao.getEventById(EVENT_3.getEventId());
+        Assert.assertNotNull("getEventById() returned null instead of an event", event3);
+        assertEventsMatch("getEventById(3)", EVENT_3, event3);
     }
 
     private void assertEventsMatch(String methodInvoked, Event expected, Event actual) {

@@ -35,7 +35,17 @@ public class JdbcEventDao implements EventDao {
 
     @Override
     public Event getEventById(int id) {
-        return null;
+        Event event = new Event();
+        String sql = "SELECT eventId, eventTime, isConnected, message FROM events WHERE eventId = ?;";
+        try {
+            SqlRowSet result = jdbcTemplate.queryForRowSet(sql, id);
+            if (result.next()) {
+                event = mapRowToEvent(result);
+            }
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to database.");
+        }
+        return event;
     }
 
     @Override
