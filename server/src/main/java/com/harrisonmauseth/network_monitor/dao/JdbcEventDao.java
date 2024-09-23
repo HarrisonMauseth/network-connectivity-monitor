@@ -1,9 +1,13 @@
 package com.harrisonmauseth.network_monitor.dao;
 
+import com.harrisonmauseth.network_monitor.exception.DaoException;
 import com.harrisonmauseth.network_monitor.model.Event;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -16,7 +20,17 @@ public class JdbcEventDao implements EventDao {
 
     @Override
     public List<Event> getAllEvents() {
-        return null;
+        List<Event> events = new ArrayList<>();
+        String sql = "SELECT eventId, eventTime, isConnected, message FROM events ORDER BY eventTime ASC;";
+        try {
+            SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
+            while (results.next()) {
+                events.add(mapRowToEvent(results));
+            }
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to database.");
+        }
+        return events;
     }
 
     @Override
@@ -42,5 +56,18 @@ public class JdbcEventDao implements EventDao {
     @Override
     public int deleteEvent(int eventId) {
         return 0;
+    }
+
+    private Event mapRowToEvent(SqlRowSet rowSet) {
+        Event event = new Event();
+        event.setEventId(rowSet.getInt("eventId"));
+        if (rowSet.getTimestamp("eventTime") != null) {
+            event.setEventTime(rowSet.getTimestamp("eventTime").toLocalDateTime());
+        }
+        event.setConnected(rowSet.getBoolean("isConnected"));
+        if (rowSet.getString("message") != null) {
+            event.setMessage(rowSet.getString("message"));
+        }
+        return event;
     }
 }

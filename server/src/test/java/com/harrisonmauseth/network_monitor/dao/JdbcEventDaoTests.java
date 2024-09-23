@@ -30,4 +30,11 @@ public class JdbcEventDaoTests extends BaseDaoTests {
         Assert.assertEquals("getAllEvents() did not return correct number of events", 3, events.size());
     }
 
+    private void assertEventsMatch(String methodInvoked, Event expected, Event actual) {
+        Assert.assertEquals(methodInvoked + " eventIds do not match.", expected.getEventId(), actual.getEventId());
+        Assert.assertEquals(methodInvoked + " eventTimes do not match.", expected.getEventTime(), actual.getEventTime());
+        Assert.assertEquals(methodInvoked + " isConnected does not match.", expected.isConnected(), actual.isConnected());
+        Assert.assertEquals(methodInvoked + " messages do not match", expected.getMessage(), actual.getMessage());
+    }
+
 }
