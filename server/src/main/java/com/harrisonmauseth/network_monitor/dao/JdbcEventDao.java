@@ -2,11 +2,13 @@ package com.harrisonmauseth.network_monitor.dao;
 
 import com.harrisonmauseth.network_monitor.exception.DaoException;
 import com.harrisonmauseth.network_monitor.model.Event;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +52,26 @@ public class JdbcEventDao implements EventDao {
 
     @Override
     public Event createEvent(Event eventToCreate) {
-        return null;
+        Event event;
+        if (eventToCreate.getEventTime() == null) {
+            eventToCreate.setEventTime(LocalDateTime.now());
+        }
+        String sql = "INSERT INTO events (eventTime, isConnected, message) VALUES (?, ?, ?) RETURNING eventId;";
+        try {
+            int eventId = jdbcTemplate.queryForObject(
+                    sql,
+                    int.class,
+                    eventToCreate.getEventTime(),
+                    eventToCreate.isConnected(),
+                    eventToCreate.getMessage()
+            );
+            event = getEventById(eventId);
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to database.");
+        } catch (DataIntegrityViolationException e) {
+            throw new DaoException("Data integrity violation");
+        }
+        return event;
     }
 
     @Override

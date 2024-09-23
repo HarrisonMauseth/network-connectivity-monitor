@@ -41,8 +41,23 @@ public class JdbcEventDaoTests extends BaseDaoTests {
         assertEventsMatch("getEventById(2)", EVENT_2, event2);
 
         Event event3 = dao.getEventById(EVENT_3.getEventId());
-        Assert.assertNotNull("getEventById() returned null instead of an event", event3);
+        Assert.assertNotNull("getEventById() returned null instead of an event.", event3);
         assertEventsMatch("getEventById(3)", EVENT_3, event3);
+    }
+
+    @Test
+    public void createEvent_createsEvent() {
+        Event eventToCreate = new Event(0, LocalDateTime.parse("2000-05-05T05:00:00"), false, "message 4");
+
+        Event createdEvent = dao.createEvent(eventToCreate);
+        Assert.assertNotNull("createEvent() returned null", createdEvent);
+        Assert.assertTrue("createEvent() did not return the eventId of the created event.", createdEvent.getEventId() > 0);
+
+        eventToCreate.setEventId(createdEvent.getEventId());
+        assertEventsMatch("createEvent()", eventToCreate, createdEvent);
+
+        Event retrievedEvent = dao.getEventById(createdEvent.getEventId());
+        assertEventsMatch("created event did not store properly within the database:", createdEvent, retrievedEvent);
     }
 
     private void assertEventsMatch(String methodInvoked, Event expected, Event actual) {
