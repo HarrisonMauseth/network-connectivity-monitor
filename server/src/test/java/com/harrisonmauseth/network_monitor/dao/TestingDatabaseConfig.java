@@ -11,6 +11,11 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
+/**
+ * To use an existing PostgreSQL database, set up the following environment variables, otherwise
+ * the default values will be used. Default values operate under the assumption that the user
+ * has not updated postgres default settings.
+ */
 @Configuration
 public class TestingDatabaseConfig {
 

@@ -1,10 +1,19 @@
 package com.harrisonmauseth.network_monitor.dao;
 
 import com.harrisonmauseth.network_monitor.model.Event;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class JdbcEventDao implements EventDao {
+    private JdbcTemplate jdbcTemplate;
+
+    public JdbcEventDao(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @Override
     public List<Event> getAllEvents() {
         return null;
