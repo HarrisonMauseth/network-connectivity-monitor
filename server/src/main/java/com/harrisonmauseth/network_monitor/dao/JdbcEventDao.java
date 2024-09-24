@@ -37,7 +37,7 @@ public class JdbcEventDao implements EventDao {
 
     @Override
     public Event getEventById(int id) {
-        Event event = new Event();
+        Event event = null;
         String sql = "SELECT eventId, eventTime, isConnected, message FROM events WHERE eventId = ?;";
         try {
             SqlRowSet result = jdbcTemplate.queryForRowSet(sql, id);
@@ -108,7 +108,16 @@ public class JdbcEventDao implements EventDao {
 
     @Override
     public int deleteEvent(int eventId) {
-        return 0;
+        int numberOfRowsDeleted;
+        String sql = "DELETE FROM events WHERE eventId = ?;";
+        try {
+            numberOfRowsDeleted = jdbcTemplate.update(sql, eventId);
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to database.");
+        } catch (DataIntegrityViolationException e) {
+            throw new DaoException("Data integrity violation");
+        }
+        return numberOfRowsDeleted;
     }
 
     private Event mapRowToEvent(SqlRowSet rowSet) {

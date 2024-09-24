@@ -74,7 +74,7 @@ public class JdbcEventDaoTests extends BaseDaoTests {
 
     @Test
     public void updateEvent_updates_event() {
-        Event eventToUpdate = new Event(1, LocalDateTime.parse("1999-01-01T01:00:00"),true,"updated event");
+        Event eventToUpdate = new Event(1, LocalDateTime.parse("1999-01-01T01:00:00"), true, "updated event");
 
         Event updatedEvent = dao.updateEvent(eventToUpdate);
         Assert.assertNotNull("updateEvent() returned null instead of updated event", updatedEvent);
@@ -85,6 +85,14 @@ public class JdbcEventDaoTests extends BaseDaoTests {
 
         Event unmodifiedEvent = dao.getEventById(EVENT_2.getEventId());
         assertEventsMatch("updateEvent() updated either the wrong or multiple events:", EVENT_2, unmodifiedEvent);
+    }
+
+    @Test
+    public void deleteEvent_deletes_event() {
+        int rowsDeleted = dao.deleteEvent(EVENT_3.getEventId());
+        Assert.assertEquals("deleteEvent(3) did not delete the correct number of rows.", 1, rowsDeleted);
+        Event retrievedEvent = dao.getEventById(EVENT_3.getEventId());
+        Assert.assertNull("deleteEvent(3) did not remove the event from the database.", retrievedEvent);
     }
 
     private void assertEventsMatch(String methodInvoked, Event expected, Event actual) {
