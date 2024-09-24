@@ -23,7 +23,7 @@ public class JdbcEventDao implements EventDao {
     @Override
     public List<Event> getAllEvents() {
         List<Event> events = new ArrayList<>();
-        String sql = "SELECT eventId, eventTime, isConnected, message FROM events ORDER BY eventTime ASC;";
+        String sql = "SELECT eventId, eventTime, isConnected, message FROM events ORDER BY eventTime DESC;";
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
             while (results.next()) {

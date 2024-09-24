@@ -1,10 +1,17 @@
 package com.harrisonmauseth.network_monitor.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDateTime;
 
+@JsonPropertyOrder({"eventId", "eventTime", "isConnected", "message"})
 public class Event {
     private int eventId;
     private LocalDateTime eventTime;
+    @JsonProperty("isConnected")
+    @NotNull(message = "'connected' must be a boolean")
     private boolean isConnected;
     private String message;
 
@@ -34,10 +41,12 @@ public class Event {
         this.eventTime = eventTime;
     }
 
+    @JsonProperty("isConnected")
     public boolean isConnected() {
         return isConnected;
     }
 
+    @JsonProperty("isConnected")
     public void setConnected(boolean connected) {
         isConnected = connected;
     }
