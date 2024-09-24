@@ -76,7 +76,11 @@ public class JdbcEventDao implements EventDao {
 
     @Override
     public List<Event> createMultipleEvents(Event[] events) {
-        return null;
+        List<Event> createdEvents = new ArrayList<>();
+        for (Event event : events) {
+            createdEvents.add(createEvent(event));
+        }
+        return createdEvents;
     }
 
     @Override
