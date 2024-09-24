@@ -7,7 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -72,4 +74,19 @@ public class EventController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to log events.");
         }
     }
+
+    @PutMapping(path = "/{id}")
+    public Event updateEvent(@Valid @RequestBody Event eventToUpdate, @PathVariable int id) {
+        eventToUpdate.setEventId(id);
+        try {
+            return eventDao.updateEvent(eventToUpdate);
+        } catch (DaoException e) {
+            if (e.getMessage().equals("Zero rows affected, expected at least one.")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event (eventId: " + id + ") not found.");
+            } else {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            }
+        }
+    }
+
 }
