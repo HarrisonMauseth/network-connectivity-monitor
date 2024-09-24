@@ -6,6 +6,7 @@ import com.harrisonmauseth.network_monitor.model.Event;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -89,4 +90,16 @@ public class EventController {
         }
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping(path = "/{id}")
+    public void deleteLog(@PathVariable int id) {
+        try {
+            int rowsDeleted = eventDao.deleteEvent(id);
+            if (rowsDeleted == 0) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event (eventId: " + id + ") not found.");
+            }
+        } catch (DaoException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+        }
+    }
 }
