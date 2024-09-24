@@ -56,4 +56,20 @@ public class EventController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to log event.");
         }
     }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(path = "/multiple")
+    public List<Event> logMultiple(@RequestBody Event[] eventsToCreate) {
+        List<Event> createdEvents;
+        try {
+            createdEvents = eventDao.createMultipleEvents(eventsToCreate);
+        } catch (DaoException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+        }
+        if (createdEvents != null) {
+            return createdEvents;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to log events.");
+        }
+    }
 }
