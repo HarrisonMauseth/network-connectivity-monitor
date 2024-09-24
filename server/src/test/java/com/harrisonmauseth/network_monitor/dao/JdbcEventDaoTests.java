@@ -72,6 +72,21 @@ public class JdbcEventDaoTests extends BaseDaoTests {
         Assert.assertEquals("CreateMultipleEvents() did not return the correct number of events", 3, createdEvents.size());
     }
 
+    @Test
+    public void updateEvent_updates_event() {
+        Event eventToUpdate = new Event(1, LocalDateTime.parse("1999-01-01T01:00:00"),true,"updated event");
+
+        Event updatedEvent = dao.updateEvent(eventToUpdate);
+        Assert.assertNotNull("updateEvent() returned null instead of updated event", updatedEvent);
+        assertEventsMatch("updateEvent() returned incorrect or incomplete event:", eventToUpdate, updatedEvent);
+
+        Event retrievedEvent = dao.getEventById(updatedEvent.getEventId());
+        assertEventsMatch("updateEvent() updated the event but failed to save in the database:", updatedEvent, retrievedEvent);
+
+        Event unmodifiedEvent = dao.getEventById(EVENT_2.getEventId());
+        assertEventsMatch("updateEvent() updated either the wrong or multiple events:", EVENT_2, unmodifiedEvent);
+    }
+
     private void assertEventsMatch(String methodInvoked, Event expected, Event actual) {
         Assert.assertEquals(methodInvoked + " eventIds do not match.", expected.getEventId(), actual.getEventId());
         Assert.assertEquals(methodInvoked + " eventTimes do not match.", expected.getEventTime(), actual.getEventTime());

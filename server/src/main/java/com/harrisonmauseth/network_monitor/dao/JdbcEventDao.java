@@ -85,7 +85,25 @@ public class JdbcEventDao implements EventDao {
 
     @Override
     public Event updateEvent(Event eventToUpdate) {
-        return null;
+        Event updatedEvent;
+        String sql = "UPDATE events SET eventTime = ?, isConnected = ?, message = ? WHERE eventId = ?;";
+        try {
+            int numberOfRowsUpdated = jdbcTemplate.update(
+                    sql,
+                    eventToUpdate.getEventTime(),
+                    eventToUpdate.isConnected(),
+                    eventToUpdate.getMessage(),
+                    eventToUpdate.getEventId()
+            );
+            if (numberOfRowsUpdated == 0) {
+                throw new DaoException("Zero rows affected, expected at least one.");
+            } else updatedEvent = getEventById(eventToUpdate.getEventId());
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to database.");
+        } catch (DataIntegrityViolationException e) {
+            throw new DaoException("Data integrity violation");
+        }
+        return updatedEvent;
     }
 
     @Override
