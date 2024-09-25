@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../lib/credentials.h"
+#include <credentials.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <list>
@@ -7,12 +7,13 @@
 #include <time.h>
 
 std::list<String> logs;
+bool timeIsSynced = false;
 bool hasDisconnected = false;
 bool hasReconnected = false;
 unsigned long timeOfLastLog = 0;
 const int MAX_LOGS = 180;
 const unsigned long LOG_INTERVAL_IN_MILLISECONDS = 300000;
-const unsigned long HEARTBEAT_INTERVAL_IN_MILLISECONDS = 10000;
+const unsigned long HEARTBEAT_INTERVAL_IN_MILLISECONDS = 30000;
 const unsigned long JSON_EVENT_SIZE_IN_BYTES = 256;
 const unsigned long MAX_JSON_SIZE_IN_BYTES = (MAX_LOGS + 20) * JSON_EVENT_SIZE_IN_BYTES;
 unsigned long millisecondsSinceLastHeartbeat = 0;
@@ -55,26 +56,27 @@ void checkAndTrimLogs()
 
 void logEvent(bool connected, String message)
 {
+  if (!timeIsSynced)
+    return;
+
   String timestamp = getCurrentTime();
-  Serial.println("attempting log at: " + timestamp);
 
   DynamicJsonDocument jsonDoc(JSON_EVENT_SIZE_IN_BYTES);
-  jsonDoc["eventId"] = timestamp;
+  jsonDoc["eventTime"] = timestamp;
   jsonDoc["isConnected"] = connected;
   jsonDoc["message"] = message;
 
   String logEntry;
   serializeJson(jsonDoc, logEntry);
   logs.push_back(logEntry);
-  Serial.println("event logged! Total logs: " + String(logs.size()));
+  Serial.println(logEntry);
   checkAndTrimLogs();
 }
 
 void WiFiEventHandler(WiFiEvent_t event)
 {
-  if (event == SYSTEM_EVENT_STA_DISCONNECTED)
+  if (event == SYSTEM_EVENT_STA_DISCONNECTED && !hasDisconnected)
   {
-    Serial.println("WiFi disconnected");
     logEvent(false, "WiFi disconnected");
     hasDisconnected = true;
     hasReconnected = false;
@@ -82,11 +84,14 @@ void WiFiEventHandler(WiFiEvent_t event)
   }
   else if (event == SYSTEM_EVENT_STA_CONNECTED)
   {
-    Serial.println("WiFi connected");
-    logEvent(true, "WiFi connected");
     if (hasDisconnected)
     {
+      logEvent(true, "WiFi reconnected");
       hasReconnected = true;
+    }
+    else
+    {
+      logEvent(true, "WiFi connected");
     }
   }
 }
@@ -103,10 +108,11 @@ void heartbeatCheck()
     String message = "Heartbeat: WiFi has been down for " + String(minutes) + " minutes and " + String(seconds) + " seconds";
     Serial.println(message);
     logEvent(false, message);
+    Serial.println("WiFi attempting to reconnect...");
+    WiFi.reconnect();
   }
   else
   {
-    Serial.println("Heartbeat: WiFi is up");
     logEvent(true, "Heartbeat: WiFi is up");
   }
 }
@@ -133,7 +139,7 @@ void sendLogsToServer()
     http.addHeader("Content-Type", "application/json");
 
     int httpResponseCode = http.POST(payload);
-    if (httpResponseCode == 200)
+    if (httpResponseCode == 201)
     {
       logs.clear();
       hasDisconnected = false;
@@ -168,7 +174,19 @@ void setup()
   WiFi.begin(USER_SSID, USER_SSID_TOKEN);
   WiFi.onEvent(WiFiEventHandler);
   configTime(0, 0, "pool.ntp.org");
+
+  while (time(nullptr) < 100000)
+  {
+    delay(500);
+  }
+
+  timeIsSynced = true;
   timeOfLastLog = millis();
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    logEvent(true, "WiFi connected");
+  }
 }
 
 void loop()
