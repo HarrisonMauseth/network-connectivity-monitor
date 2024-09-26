@@ -122,13 +122,14 @@ void sendLogsToServer()
   if (WiFi.status() == WL_CONNECTED && !logs.empty())
   {
     DynamicJsonDocument jsonDoc(MAX_JSON_SIZE_IN_BYTES);
-    JsonArray events = jsonDoc.createNestedArray("events");
+    JsonArray events = jsonDoc.to<JsonArray>();
 
     for (String log : logs)
     {
       DynamicJsonDocument eventJson(JSON_EVENT_SIZE_IN_BYTES);
       deserializeJson(eventJson, log);
       events.add(eventJson);
+      Serial.println("Log added to payload: " + log);
     }
 
     String payload;
@@ -141,9 +142,16 @@ void sendLogsToServer()
     int httpResponseCode = http.POST(payload);
     if (httpResponseCode == 201)
     {
+      Serial.println("Success!");
       logs.clear();
       hasDisconnected = false;
       hasReconnected = false;
+    }
+    else
+    {
+      Serial.println("HTTP Request failed. Response code: " + String(httpResponseCode));
+      String response = http.getString();  // Capture the server's response
+      Serial.println("Response from server: " + response);
     }
     http.end();
   }
