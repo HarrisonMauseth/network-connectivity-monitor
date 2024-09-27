@@ -24,10 +24,34 @@ public class JdbcEventDaoTests extends BaseDaoTests {
     }
 
     @Test
-    public void getAllEvents_returns_correct_number_of_events() {
+    public void getAllEvents_returns_all_events_in_correct_order() {
         events = dao.getAllEvents();
-        Assert.assertNotNull("getAllEvents() returned null instead of an empty list", events);
+        Assert.assertNotNull("getAllEvents() returned null instead of a list", events);
         Assert.assertEquals("getAllEvents() did not return correct number of events", 3, events.size());
+        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_3, events.get(0));
+        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_2, events.get(1));
+        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_1, events.get(2));
+    }
+
+    @Test
+    public void getAllEventsLimited_returns_correct_number_of_events_in_correct_order() {
+        events = dao.getAllEventsLimited(2);
+        Assert.assertNotNull("getAllEventsLimited(2) returned null instead of a list", events);
+        Assert.assertEquals("getAllEventsLimited(2) did not return correct number of events", 2, events.size());
+        assertEventsMatch("getAllEventsLimited(2) returned events in incorrect order", EVENT_3, events.get(0));
+        assertEventsMatch("getAllEventsLimited(2) returned events in incorrect order", EVENT_2, events.get(1));
+
+        events = dao.getAllEventsLimited(1);
+        Assert.assertNotNull("getAllEventsLimited(1) returned null instead of a list", events);
+        Assert.assertEquals("getAllEventsLimited(1) did not return correct number of events", 1, events.size());
+
+        events = dao.getAllEventsLimited(0);
+        Assert.assertNotNull("getAllEventsLimited(0) returned null instead of a list", events);
+        Assert.assertEquals("getAllEventsLimited(0) did not return all events", 3, events.size());
+
+        events = dao.getAllEventsLimited(-1);
+        Assert.assertNotNull("getAllEventsLimited(-1) returned null instead of a list", events);
+        Assert.assertEquals("getAllEventsLimited(-1) did not return all events", 3, events.size());
     }
 
     @Test

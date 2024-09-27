@@ -5,12 +5,21 @@ import com.harrisonmauseth.network_monitor.model.Event;
 import java.util.List;
 
 public interface EventDao {
+
     /**
-     * Get all events from the database.
+     * Get all events from the database, sorted with the most recent time first.
      *
      * @return a list of all events
      */
     List<Event> getAllEvents();
+
+    /**
+     * Get all events from the database, limited by the number passed in, sorted with the most recent time first.
+     *
+     * @param limit the number of results you wish to see
+     * @return a list of all events
+     */
+    List<Event> getAllEventsLimited(int limit);
 
     /**
      * Get a specific event from the database.
