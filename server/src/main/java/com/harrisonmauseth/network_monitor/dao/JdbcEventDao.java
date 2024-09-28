@@ -12,10 +12,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class JdbcEventDao implements EventDao {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public JdbcEventDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -104,14 +105,18 @@ public class JdbcEventDao implements EventDao {
         }
         String sql = "INSERT INTO events (eventTime, isConnected, message) VALUES (?, ?, ?) RETURNING eventId;";
         try {
-            int eventId = jdbcTemplate.queryForObject(
+            Integer eventId = jdbcTemplate.queryForObject(
                     sql,
                     int.class,
                     eventToCreate.getEventTime(),
                     eventToCreate.isConnected(),
                     eventToCreate.getMessage()
             );
-            event = getEventById(eventId);
+            if (eventId != null) {
+                event = getEventById(eventId);
+            } else {
+                throw new DaoException("Unexpected error occurred while trying to create.");
+            }
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to database.");
         } catch (DataIntegrityViolationException e) {
@@ -170,7 +175,7 @@ public class JdbcEventDao implements EventDao {
         Event event = new Event();
         event.setEventId(rowSet.getInt("eventId"));
         if (rowSet.getTimestamp("eventTime") != null) {
-            event.setEventTime(rowSet.getTimestamp("eventTime").toLocalDateTime());
+            event.setEventTime(Objects.requireNonNull(rowSet.getTimestamp("eventTime")).toLocalDateTime());
         }
         event.setConnected(rowSet.getBoolean("isConnected"));
         if (rowSet.getString("message") != null) {

@@ -24,7 +24,7 @@ import java.util.List;
 @CrossOrigin
 @RequestMapping("/api/events")
 public class EventController {
-    private EventDao eventDao;
+    private final EventDao eventDao;
 
     public EventController(EventDao dao) {
         this.eventDao = dao;
