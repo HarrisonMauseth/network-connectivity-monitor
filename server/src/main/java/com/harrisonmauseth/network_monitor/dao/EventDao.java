@@ -22,6 +22,14 @@ public interface EventDao {
     List<Event> getAllEventsLimited(int limit);
 
     /**
+     * Get a list of failed connections limited by user.
+     *
+     * @param limit the number of results you wish to see
+     * @return a list of failed events
+     */
+    List<Event> getDisconnectedEvents(int limit);
+
+    /**
      * Get a specific event from the database.
      *
      * @param id the id of the event you wish to retrieve

@@ -14,6 +14,7 @@ public class JdbcEventDaoTests extends BaseDaoTests {
     public static final Event EVENT_1 = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, "message 1");
     public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), true, "message 2");
     public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), true, "message 3");
+    public static final Event EVENT_4 = new Event(4, LocalDateTime.parse("2000-04-04T04:00:00"), false, "message 4");
     List<Event> events = new ArrayList<>();
     private JdbcEventDao dao;
 
@@ -27,10 +28,11 @@ public class JdbcEventDaoTests extends BaseDaoTests {
     public void getAllEvents_returns_all_events_in_correct_order() {
         events = dao.getAllEvents();
         Assert.assertNotNull("getAllEvents() returned null instead of a list", events);
-        Assert.assertEquals("getAllEvents() did not return correct number of events", 3, events.size());
-        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_3, events.get(0));
-        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_2, events.get(1));
-        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_1, events.get(2));
+        Assert.assertEquals("getAllEvents() did not return correct number of events", 4, events.size());
+        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_4, events.get(0));
+        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_3, events.get(1));
+        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_2, events.get(2));
+        assertEventsMatch("getAllEvents() returned events in incorrect order", EVENT_1, events.get(3));
     }
 
     @Test
@@ -38,8 +40,8 @@ public class JdbcEventDaoTests extends BaseDaoTests {
         events = dao.getAllEventsLimited(2);
         Assert.assertNotNull("getAllEventsLimited(2) returned null instead of a list", events);
         Assert.assertEquals("getAllEventsLimited(2) did not return correct number of events", 2, events.size());
-        assertEventsMatch("getAllEventsLimited(2) returned events in incorrect order", EVENT_3, events.get(0));
-        assertEventsMatch("getAllEventsLimited(2) returned events in incorrect order", EVENT_2, events.get(1));
+        assertEventsMatch("getAllEventsLimited(2) returned events in incorrect order", EVENT_4, events.get(0));
+        assertEventsMatch("getAllEventsLimited(2) returned events in incorrect order", EVENT_3, events.get(1));
 
         events = dao.getAllEventsLimited(1);
         Assert.assertNotNull("getAllEventsLimited(1) returned null instead of a list", events);
@@ -47,11 +49,28 @@ public class JdbcEventDaoTests extends BaseDaoTests {
 
         events = dao.getAllEventsLimited(0);
         Assert.assertNotNull("getAllEventsLimited(0) returned null instead of a list", events);
-        Assert.assertEquals("getAllEventsLimited(0) did not return all events", 3, events.size());
+        Assert.assertEquals("getAllEventsLimited(0) did not return all events", 4, events.size());
 
         events = dao.getAllEventsLimited(-1);
         Assert.assertNotNull("getAllEventsLimited(-1) returned null instead of a list", events);
-        Assert.assertEquals("getAllEventsLimited(-1) did not return all events", 3, events.size());
+        Assert.assertEquals("getAllEventsLimited(-1) did not return all events", 4, events.size());
+    }
+
+    @Test
+    public void getDisconnectedEvents_returns_correct_number_of_events_in_correct_order() {
+        events = dao.getDisconnectedEvents(1);
+        Assert.assertNotNull("getDisconnectedEvents(1) returned null instead of a list", events);
+        Assert.assertEquals("getDisconnectedEvents(1) did not return correct number of results", 1, events.size());
+
+        events = dao.getDisconnectedEvents(0);
+        Assert.assertNotNull("getDisconnectedEvents(0) returned null instead of a list", events);
+        Assert.assertEquals("getDisconnectedEvents(0) should have returned all failed events", 2, events.size());
+        assertEventsMatch("getDisconnectedEvents(0) returned correct number but in incorrect order", EVENT_4, events.get(0));
+        assertEventsMatch("getDisconnectedEvents(0) returned correct number but in incorrect order", EVENT_1, events.get(1));
+
+        events = dao.getDisconnectedEvents(-1);
+        Assert.assertNotNull("getDisconnectedEvents(-1) returned null instead of a list", events);
+        Assert.assertEquals("getDisconnectedEvents(-1) should have returned all failed events when passed with a negative number", 2, events.size());
     }
 
     @Test
