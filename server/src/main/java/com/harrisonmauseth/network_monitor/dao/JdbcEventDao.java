@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,7 +73,7 @@ public class JdbcEventDao implements EventDao {
     public Event createEvent(Event eventToCreate) {
         Event event;
         if (eventToCreate.getEventTime() == null) {
-            eventToCreate.setEventTime(LocalDateTime.now());
+            eventToCreate.setEventTime(LocalDateTime.now(ZoneId.of("UTC")));
         }
         String sql = "INSERT INTO events (eventTime, isConnected, message) VALUES (?, ?, ?) RETURNING eventId;";
         try {
