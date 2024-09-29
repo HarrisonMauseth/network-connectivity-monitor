@@ -1,0 +1,31 @@
+[33m86fb5df[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/010-event-controller-testing[m[33m)[m fixed issue where EventController was throwing 404 error instead of empty list when there was just no data available
+[33m66ad0d0[m created EventControllerTest method for getEvents
+[33mf5301fa[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mfeature/009-create-endpoint-for-failed-connections[m[33m)[m created `/failed` endpoint with optional limit
+[33meed0dd3[m resolved minor warnings
+[33m2f06286[m created getDisconnectedEvents dao with an optional limit, updated testing to better reflect data
+[33m90252c6[m[33m ([m[1;32mfeature/008-get-time-zones-sorted-out[m[33m)[m events that do not have a timestamp value in the JSON payload are now stored with the current time in UTC to align with automated timestamps
+[33m2ef5dd4[m[33m ([m[1;32mfeature/007-add-optional-limit-for-get-requests[m[33m)[m updated endpoint from event to events, getAllEvents refactored to getEvents and now includes optional limit in query string
+[33mf8e0ce2[m added getAllEventsLimited method into EventDao
+[33m01267c1[m create project readme
+[33m1fb92cb[m[33m ([m[1;32mfeature/006-http-request-json-update-and-monitoring[m[33m)[m fixed issue with json formatting, improved serial monitoring feedback
+[33m858e9e7[m[33m ([m[1;32mfeature/005-server-deployment[m[33m, [m[1;32mfeature/004-physical-device-testing[m[33m)[m implemented serial monitoring, first log not made until time is synced, added wifi reconenct logic
+[33ma46ea3f[m serial logging mostly working, need to address issue with wifi not reconnecting after disconnect
+[33m90fe6d9[m[33m ([m[1;32mfeature/003-rest-api[m[33m)[m implemented endpoint for deleting event in EventController
+[33m8f99ae4[m implemented endpoint for updating event in EventController
+[33m6cae1c5[m implemented endpoint for creating multiple events in EventController
+[33mf52dc5f[m implemented endpoint for creating single event in EventController
+[33mdf6042e[m REST API initial commit
+[33m0ad8d29[m[33m ([m[1;32mfeature/002-integration-testing[m[33m)[m implemented deleteEvent method in JdbcEventDao
+[33m1d67ead[m implemented updateEvent method in JdbcEventDao
+[33mc8f445a[m implemented createMultipleEvents method in JdbcEventDao
+[33mf74d3be[m implemented createEvent method in JdbcEventDao
+[33madffa9a[m implemented getEventById method in JdbcEventDao
+[33m6265814[m DAO Exception created, implemented getAllEvents method
+[33md094fc4[m created JdbcEventDaoTests
+[33m1ad4bd7[m integration testing setup completed
+[33mf656e97[m[33m ([m[1;32mfeature/001-setup-server[m[33m)[m created boilerplate jdbc event dao
+[33m8afa92c[m created EventDao
+[33m65e299e[m initial setup
+[33m3e14032[m server side initial commit
+[33mcfb7469[m implemented logic for network monitor
+[33m2d5d8d5[m initial commit

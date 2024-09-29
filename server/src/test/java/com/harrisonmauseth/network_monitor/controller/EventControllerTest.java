@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(EventController.class)
 public class EventControllerTest {
 
+    public static final Event EVENT_1 = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, "message 1");
+    public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), true, "message 2");
+    public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), true, "message 3");
+    public static final Event EVENT_4 = new Event(4, LocalDateTime.parse("2000-04-04T04:00:00"), false, "message 4");
     private final String BASE_ENDPOINT = "/api/events";
     @Autowired
     private MockMvc mockMvc;
@@ -43,11 +48,9 @@ public class EventControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
-
     @Test
-    public void testGetEvents_returns_status_code_200_when_events_exist() throws Exception {
-        Event mockEvent = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, "message 1");
-        List<Event> mockEvents = Collections.singletonList(mockEvent);
+    public void getEvents_returns_status_code_200_when_events_exist() throws Exception {
+        List<Event> mockEvents = Arrays.asList(EVENT_4, EVENT_3, EVENT_2, EVENT_1);
 
         when(eventDao.getAllEventsLimited(anyInt())).thenReturn(mockEvents);
 
@@ -56,17 +59,41 @@ public class EventControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(toJsonArray(mockEvents)));
-
     }
 
     @Test
-    public void testGetEvents_returns_status_code_404_not_found_when_no_events_found() throws Exception {
+    public void getEvents_returns_empty_array_when_no_events_exist() throws Exception {
         when(eventDao.getAllEventsLimited(anyInt())).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT)
                         .param("limit", "10")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
+    public void getDisconnectedEvents_returns_status_code_200_when_events_exist() throws Exception {
+        List<Event> mockEvents = Arrays.asList(EVENT_4, EVENT_1);
+
+        when(eventDao.getDisconnectedEvents(anyInt())).thenReturn(mockEvents);
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/failed")
+                        .param("limit", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(toJsonArray(mockEvents)));
+    }
+
+    @Test
+    public void getDisconnectedEvents_returns_empty_array_when_no_events_exist() throws Exception {
+        when(eventDao.getDisconnectedEvents(anyInt())).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/failed")
+                        .param("limit", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
     }
 
     private String toJsonArray(List<Event> events) throws JsonProcessingException {
