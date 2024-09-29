@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
@@ -157,6 +158,22 @@ public class EventControllerTest {
                         .content(toJson(EVENT_1))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void deleteLog_returns_status_code_204_when_event_is_deleted() throws Exception {
+        when(eventDao.deleteEvent(anyInt())).thenReturn(1);
+        
+        mockMvc.perform(delete(BASE_ENDPOINT + "/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void deleteLog_returns_status_code_404_when_event_is_not_found() throws Exception {
+        when(eventDao.deleteEvent(anyInt())).thenReturn(0);
+
+        mockMvc.perform(delete(BASE_ENDPOINT + "/1"))
+                .andExpect(status().isNotFound());
     }
 
     private String toJsonArray(List<Event> events) throws JsonProcessingException {
