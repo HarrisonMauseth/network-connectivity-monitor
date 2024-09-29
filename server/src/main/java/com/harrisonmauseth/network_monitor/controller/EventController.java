@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -35,6 +36,21 @@ public class EventController {
         List<Event> events;
         try {
             events = eventDao.getAllEventsLimited(limit);
+        } catch (DaoException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+        }
+        if (!events.isEmpty()) {
+            return events;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No events found.");
+        }
+    }
+
+    @GetMapping(path = "/failed")
+    public List<Event> getDisconnectedEvents(@RequestParam(defaultValue = "0") int limit) {
+        List<Event> events;
+        try {
+            events = eventDao.getDisconnectedEvents(limit);
         } catch (DaoException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
