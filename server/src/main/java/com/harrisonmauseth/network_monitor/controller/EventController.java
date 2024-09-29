@@ -39,11 +39,7 @@ public class EventController {
         } catch (DaoException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
-        if (!events.isEmpty()) {
-            return events;
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No events found.");
-        }
+        return events;
     }
 
     @GetMapping(path = "/failed")
@@ -54,11 +50,7 @@ public class EventController {
         } catch (DaoException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
-        if (!events.isEmpty()) {
-            return events;
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No events found.");
-        }
+        return events;
     }
 
     @ResponseStatus(HttpStatus.CREATED)
