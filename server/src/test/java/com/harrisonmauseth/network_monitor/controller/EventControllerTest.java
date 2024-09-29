@@ -2,27 +2,19 @@ package com.harrisonmauseth.network_monitor.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.harrisonmauseth.network_monitor.dao.BaseDaoTests;
 import com.harrisonmauseth.network_monitor.dao.EventDao;
-import com.harrisonmauseth.network_monitor.dao.JdbcEventDao;
 import com.harrisonmauseth.network_monitor.model.Event;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -115,6 +107,31 @@ public class EventControllerTest {
 
         mockMvc.perform(post(BASE_ENDPOINT)
                         .content(toJson(EVENT_1))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void logMultipleEvents_returns_201_when_events_are_created() throws Exception {
+        List<Event> createdEvents = Arrays.asList(EVENT_4, EVENT_3, EVENT_2, EVENT_1);
+
+        when(eventDao.createMultipleEvents(any(Event[].class))).thenReturn(createdEvents);
+
+        mockMvc.perform(post(BASE_ENDPOINT + "/multiple")
+                        .content(toJsonArray(createdEvents))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().json(toJsonArray(createdEvents)));
+    }
+
+    @Test
+    public void logMultipleEvents_returns_status_code_400_when_creation_fails() throws Exception {
+        List<Event> eventsToCreate = Arrays.asList(EVENT_4, EVENT_3, EVENT_2, EVENT_1);
+
+        when(eventDao.createMultipleEvents(any(Event[].class))).thenReturn(null);
+
+        mockMvc.perform(post(BASE_ENDPOINT + "/multiple")
+                        .content(toJsonArray(eventsToCreate))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
