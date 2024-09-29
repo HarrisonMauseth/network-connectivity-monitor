@@ -26,9 +26,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
@@ -94,6 +96,27 @@ public class EventControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
+    }
+
+    @Test
+    public void logEvent_returns_201_when_created() throws Exception {
+        when(eventDao.createEvent(any(Event.class))).thenReturn(EVENT_1);
+
+        mockMvc.perform(post(BASE_ENDPOINT)
+                        .content(toJson(EVENT_1))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().json(toJson(EVENT_1)));
+    }
+
+    @Test
+    public void logEvent_returns_status_code_400_when_failing_to_create_event() throws Exception {
+        when(eventDao.createEvent(any(Event.class))).thenReturn(null);
+
+        mockMvc.perform(post(BASE_ENDPOINT)
+                        .content(toJson(EVENT_1))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
     private String toJsonArray(List<Event> events) throws JsonProcessingException {
