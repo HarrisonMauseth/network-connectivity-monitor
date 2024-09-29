@@ -3,6 +3,7 @@ package com.harrisonmauseth.network_monitor.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.harrisonmauseth.network_monitor.dao.EventDao;
+import com.harrisonmauseth.network_monitor.exception.DaoException;
 import com.harrisonmauseth.network_monitor.model.Event;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
@@ -132,6 +134,27 @@ public class EventControllerTest {
 
         mockMvc.perform(post(BASE_ENDPOINT + "/multiple")
                         .content(toJsonArray(eventsToCreate))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void updateEvent_returns_status_code_200_when_event_is_updated() throws Exception {
+        when(eventDao.updateEvent(any(Event.class))).thenReturn(EVENT_1);
+
+        mockMvc.perform(put(BASE_ENDPOINT + "/1")
+                        .content(toJson(EVENT_1))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(toJson(EVENT_1)));
+    }
+
+    @Test
+    public void updateEvent_returns_status_code_400_when_unable_to_retrieve_created_event() throws Exception {
+        when(eventDao.updateEvent(any(Event.class))).thenThrow(new DaoException("Zero rows affected, expected at least one."));
+
+        mockMvc.perform(put(BASE_ENDPOINT + "/1")
+                        .content(toJson(EVENT_1))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
