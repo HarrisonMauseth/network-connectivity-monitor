@@ -6,22 +6,24 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
-@JsonPropertyOrder({"eventId", "eventTime", "isConnected", "message"})
+@JsonPropertyOrder({"eventId", "eventTime", "isConnectedToWifi", "message"})
 public class Event {
     private int eventId;
     private LocalDateTime eventTime;
-    @JsonProperty("isConnected")
+    @JsonProperty("isConnectedToWifi")
     @NotNull(message = "'connected' must be a boolean")
-    private boolean isConnected;
+    private boolean isConnectedToWifi;
+    private boolean isConnectedToInternet;
     private String message;
 
     public Event() {
     }
 
-    public Event(int eventId, LocalDateTime eventTime, boolean isConnected, String message) {
+    public Event(int eventId, LocalDateTime eventTime, boolean isConnectedToWifi, boolean isConnectedToInternet, String message) {
         this.eventId = eventId;
         this.eventTime = eventTime;
-        this.isConnected = isConnected;
+        this.isConnectedToWifi = isConnectedToWifi;
+        this.isConnectedToInternet = isConnectedToInternet;
         this.message = message;
     }
 
@@ -41,14 +43,22 @@ public class Event {
         this.eventTime = eventTime;
     }
 
-    @JsonProperty("isConnected")
-    public boolean isConnected() {
-        return isConnected;
+    @JsonProperty("isConnectedToWifi")
+    public boolean isConnectedToWifi() {
+        return isConnectedToWifi;
     }
 
-    @JsonProperty("isConnected")
-    public void setConnected(boolean connected) {
-        isConnected = connected;
+    @JsonProperty("isConnectedToWifi")
+    public void setConnectedToWifi(boolean connectedToWifi) {
+        isConnectedToWifi = connectedToWifi;
+    }
+
+    public boolean isConnectedToInternet() {
+        return isConnectedToInternet;
+    }
+
+    public void setConnectedToInternet(boolean connectedToInternet) {
+        isConnectedToInternet = connectedToInternet;
     }
 
     public String getMessage() {
@@ -64,7 +74,7 @@ public class Event {
         return "Event{" +
                 "eventId=" + eventId +
                 ", eventTime=" + eventTime +
-                ", isConnected=" + isConnected +
+                ", isConnected=" + isConnectedToWifi +
                 ", message='" + message + '\'' +
                 '}';
     }

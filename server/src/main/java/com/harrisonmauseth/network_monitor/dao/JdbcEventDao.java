@@ -25,7 +25,7 @@ public class JdbcEventDao implements EventDao {
     @Override
     public List<Event> getAllEvents() {
         List<Event> events = new ArrayList<>();
-        String sql = "SELECT eventId, eventTime, isConnected, message FROM events ORDER BY eventTime DESC;";
+        String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events ORDER BY eventTime DESC;";
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
             while (results.next()) {
@@ -43,7 +43,7 @@ public class JdbcEventDao implements EventDao {
         if (limit <= 0) {
             return getAllEvents();
         }
-        String sql = "SELECT eventId, eventTime, isConnected, message FROM events ORDER BY eventTime DESC LIMIT ?;";
+        String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events ORDER BY eventTime DESC LIMIT ?;";
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql, limit);
             while (results.next()) {
@@ -59,7 +59,7 @@ public class JdbcEventDao implements EventDao {
     public List<Event> getDisconnectedEvents(int limit) {
         List<Event> events = new ArrayList<>();
         if (limit <= 0) {
-            String sql = "SELECT eventId, eventTime, isConnected, message FROM events WHERE isConnected = false ORDER BY eventTime DESC;";
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false ORDER BY eventTime DESC;";
             try {
                 SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
                 while (results.next()) {
@@ -69,7 +69,7 @@ public class JdbcEventDao implements EventDao {
                 throw new DaoException("Unable to connect to database.");
             }
         } else {
-            String sql = "SELECT eventId, eventTime, isConnected, message FROM events WHERE isConnected = false ORDER BY eventTime DESC LIMIT ?;";
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false ORDER BY eventTime DESC LIMIT ?;";
             try {
                 SqlRowSet results = jdbcTemplate.queryForRowSet(sql, limit);
                 while (results.next()) {
@@ -85,7 +85,7 @@ public class JdbcEventDao implements EventDao {
     @Override
     public Event getEventById(int id) {
         Event event = null;
-        String sql = "SELECT eventId, eventTime, isConnected, message FROM events WHERE eventId = ?;";
+        String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE eventId = ?;";
         try {
             SqlRowSet result = jdbcTemplate.queryForRowSet(sql, id);
             if (result.next()) {
@@ -103,13 +103,14 @@ public class JdbcEventDao implements EventDao {
         if (eventToCreate.getEventTime() == null) {
             eventToCreate.setEventTime(LocalDateTime.now(ZoneId.of("UTC")));
         }
-        String sql = "INSERT INTO events (eventTime, isConnected, message) VALUES (?, ?, ?) RETURNING eventId;";
+        String sql = "INSERT INTO events (eventTime, isConnectedToWifi, isConnectedToInternet, message) VALUES (?, ?, ?, ?) RETURNING eventId;";
         try {
             Integer eventId = jdbcTemplate.queryForObject(
                     sql,
                     int.class,
                     eventToCreate.getEventTime(),
-                    eventToCreate.isConnected(),
+                    eventToCreate.isConnectedToWifi(),
+                    eventToCreate.isConnectedToInternet(),
                     eventToCreate.getMessage()
             );
             if (eventId != null) {
@@ -137,12 +138,13 @@ public class JdbcEventDao implements EventDao {
     @Override
     public Event updateEvent(Event eventToUpdate) {
         Event updatedEvent;
-        String sql = "UPDATE events SET eventTime = ?, isConnected = ?, message = ? WHERE eventId = ?;";
+        String sql = "UPDATE events SET eventTime = ?, isConnectedToWifi = ?, isConnectedToInternet = ?, message = ? WHERE eventId = ?;";
         try {
             int numberOfRowsUpdated = jdbcTemplate.update(
                     sql,
                     eventToUpdate.getEventTime(),
-                    eventToUpdate.isConnected(),
+                    eventToUpdate.isConnectedToWifi(),
+                    eventToUpdate.isConnectedToInternet(),
                     eventToUpdate.getMessage(),
                     eventToUpdate.getEventId()
             );
@@ -177,7 +179,8 @@ public class JdbcEventDao implements EventDao {
         if (rowSet.getTimestamp("eventTime") != null) {
             event.setEventTime(Objects.requireNonNull(rowSet.getTimestamp("eventTime")).toLocalDateTime());
         }
-        event.setConnected(rowSet.getBoolean("isConnected"));
+        event.setConnectedToWifi(rowSet.getBoolean("isConnectedToWifi"));
+        event.setConnectedToInternet(rowSet.getBoolean("isConnectedToInternet"));
         if (rowSet.getString("message") != null) {
             event.setMessage(rowSet.getString("message"));
         }

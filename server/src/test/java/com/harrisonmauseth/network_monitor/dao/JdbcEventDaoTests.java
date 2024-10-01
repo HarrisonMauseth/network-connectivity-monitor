@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JdbcEventDaoTests extends BaseDaoTests {
-    public static final Event EVENT_1 = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, "message 1");
-    public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), true, "message 2");
-    public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), true, "message 3");
-    public static final Event EVENT_4 = new Event(4, LocalDateTime.parse("2000-04-04T04:00:00"), false, "message 4");
+    public static final Event EVENT_1 = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, false, "message 1");
+    public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), true, false,"message 2");
+    public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), true, true,"message 3");
+    public static final Event EVENT_4 = new Event(4, LocalDateTime.parse("2000-04-04T04:00:00"), false, true,"message 4");
     List<Event> events = new ArrayList<>();
     private JdbcEventDao dao;
 
@@ -90,7 +90,7 @@ public class JdbcEventDaoTests extends BaseDaoTests {
 
     @Test
     public void createEvent_createsEvent() {
-        Event eventToCreate = new Event(0, LocalDateTime.parse("2000-05-05T05:00:00"), false, "message 4");
+        Event eventToCreate = new Event(0, LocalDateTime.parse("2000-05-05T05:00:00"), false, false,"message 4");
 
         Event createdEvent = dao.createEvent(eventToCreate);
         Assert.assertNotNull("createEvent() returned null", createdEvent);
@@ -105,9 +105,9 @@ public class JdbcEventDaoTests extends BaseDaoTests {
 
     @Test
     public void createMultipleEvents_creates_multiple_events() {
-        Event newEvent1 = new Event(4, LocalDateTime.parse("2004-04-04T04:44:44"), false, "message 4");
-        Event newEvent2 = new Event(5, LocalDateTime.parse("2005-05-05T05:55:55"), false, "message 5");
-        Event newEvent3 = new Event(6, LocalDateTime.parse("2006-06-06T06:06:06"), false, "message 6");
+        Event newEvent1 = new Event(4, LocalDateTime.parse("2004-04-04T04:44:44"), false, false,"message 4");
+        Event newEvent2 = new Event(5, LocalDateTime.parse("2005-05-05T05:55:55"), false, false,"message 5");
+        Event newEvent3 = new Event(6, LocalDateTime.parse("2006-06-06T06:06:06"), false, false,"message 6");
         Event[] eventsToCreate = new Event[]{newEvent1, newEvent2, newEvent3};
 
         List<Event> createdEvents = dao.createMultipleEvents(eventsToCreate);
@@ -117,7 +117,7 @@ public class JdbcEventDaoTests extends BaseDaoTests {
 
     @Test
     public void updateEvent_updates_event() {
-        Event eventToUpdate = new Event(1, LocalDateTime.parse("1999-01-01T01:00:00"), true, "updated event");
+        Event eventToUpdate = new Event(1, LocalDateTime.parse("1999-01-01T01:00:00"), true, true,"updated event");
 
         Event updatedEvent = dao.updateEvent(eventToUpdate);
         Assert.assertNotNull("updateEvent() returned null instead of updated event", updatedEvent);
@@ -141,7 +141,8 @@ public class JdbcEventDaoTests extends BaseDaoTests {
     private void assertEventsMatch(String methodInvoked, Event expected, Event actual) {
         Assert.assertEquals(methodInvoked + " eventIds do not match.", expected.getEventId(), actual.getEventId());
         Assert.assertEquals(methodInvoked + " eventTimes do not match.", expected.getEventTime(), actual.getEventTime());
-        Assert.assertEquals(methodInvoked + " isConnected does not match.", expected.isConnected(), actual.isConnected());
+        Assert.assertEquals(methodInvoked + " isConnectedToWifi does not match.", expected.isConnectedToWifi(), actual.isConnectedToWifi());
+        Assert.assertEquals(methodInvoked + " isConnectedToInternet does not match.", expected.isConnectedToInternet(), actual.isConnectedToInternet());
         Assert.assertEquals(methodInvoked + " messages do not match", expected.getMessage(), actual.getMessage());
     }
 

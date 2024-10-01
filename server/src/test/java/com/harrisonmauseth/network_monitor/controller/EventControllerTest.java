@@ -33,10 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(EventController.class)
 public class EventControllerTest {
 
-    public static final Event EVENT_1 = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, "message 1");
-    public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), true, "message 2");
-    public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), true, "message 3");
-    public static final Event EVENT_4 = new Event(4, LocalDateTime.parse("2000-04-04T04:00:00"), false, "message 4");
+    public static final Event EVENT_1 = new Event(1, LocalDateTime.parse("2000-01-01T01:00:00"), false, false, "message 1");
+    public static final Event EVENT_2 = new Event(2, LocalDateTime.parse("2000-02-02T02:00:00"), true, false, "message 2");
+    public static final Event EVENT_3 = new Event(3, LocalDateTime.parse("2000-03-03T03:00:00"), true, true, "message 3");
+    public static final Event EVENT_4 = new Event(4, LocalDateTime.parse("2000-04-04T04:00:00"), false, true, "message 4");
     private final String BASE_ENDPOINT = "/api/events";
     @Autowired
     private MockMvc mockMvc;
@@ -163,7 +163,7 @@ public class EventControllerTest {
     @Test
     public void deleteLog_returns_status_code_204_when_event_is_deleted() throws Exception {
         when(eventDao.deleteEvent(anyInt())).thenReturn(1);
-        
+
         mockMvc.perform(delete(BASE_ENDPOINT + "/1"))
                 .andExpect(status().isNoContent());
     }
