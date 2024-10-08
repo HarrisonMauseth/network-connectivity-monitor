@@ -6,13 +6,14 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
-@JsonPropertyOrder({"eventId", "eventTime", "isConnectedToWifi", "message"})
+@JsonPropertyOrder({"eventId", "eventTime", "isConnectedToWifi", "isConnectedToInternet", "message"})
 public class Event {
     private int eventId;
     private LocalDateTime eventTime;
     @JsonProperty("isConnectedToWifi")
     @NotNull(message = "'connected' must be a boolean")
     private boolean isConnectedToWifi;
+    @JsonProperty("isConnectedToInternet")
     private boolean isConnectedToInternet;
     private String message;
 
@@ -53,10 +54,12 @@ public class Event {
         isConnectedToWifi = connectedToWifi;
     }
 
+    @JsonProperty("isConnectedToInternet")
     public boolean isConnectedToInternet() {
         return isConnectedToInternet;
     }
 
+    @JsonProperty("isConnectedToInternet")
     public void setConnectedToInternet(boolean connectedToInternet) {
         isConnectedToInternet = connectedToInternet;
     }
@@ -74,7 +77,8 @@ public class Event {
         return "Event{" +
                 "eventId=" + eventId +
                 ", eventTime=" + eventTime +
-                ", isConnected=" + isConnectedToWifi +
+                ", isConnectedToWifi=" + isConnectedToWifi +
+                ", isConnectedToInternet=" + isConnectedToInternet +
                 ", message='" + message + '\'' +
                 '}';
     }
