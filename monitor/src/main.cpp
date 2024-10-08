@@ -2,23 +2,30 @@
 #include <credentials.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ESP32Ping.h>
 #include <list>
 #include <ArduinoJson.h>
 #include <time.h>
 
-std::list<String> logs;
-bool timeIsSynced = false;
-bool hasDisconnected = false;
-bool hasReconnected = false;
-unsigned long timeOfLastLog = 0;
+const IPAddress PING_IP(8, 8, 8, 8);
 const int MAX_LOGS = 180;
 const unsigned long LOG_INTERVAL_IN_MILLISECONDS = 300000;
 const unsigned long HEARTBEAT_INTERVAL_IN_MILLISECONDS = 30000;
+const unsigned long PING_INTERVAL_IN_MILLISECONDS = 900000;
+const unsigned long PING_DELAY_IN_MILLISECONDS = 15000;
 const unsigned long JSON_EVENT_SIZE_IN_BYTES = 256;
 const unsigned long MAX_JSON_SIZE_IN_BYTES = (MAX_LOGS + 20) * JSON_EVENT_SIZE_IN_BYTES;
-unsigned long millisecondsSinceLastHeartbeat = 0;
-unsigned long timeOfDisconnect = 0;
+bool wifiIsConnected = false;
+bool internetIsConnected = false;
+bool wifiHasDisconnectedFlag = false;
+bool wifiHasReconnectedFlag = false;
+bool timeIsSynced = false;
 unsigned long currentTime = 0;
+unsigned long lastHeartbeatTime = 0;
+unsigned long lastPingTime = 0;
+unsigned long timeOfLastLog = 0;
+unsigned long timeOfDisconnect = 0;
+std::list<String> logs;
 
 String getCurrentTime()
 {
@@ -54,7 +61,21 @@ void checkAndTrimLogs()
   }
 }
 
-void logEvent(bool connected, String message)
+void checkInternetConnection()
+{
+  if (Ping.ping(PING_IP))
+  {
+    Serial.println("Successful Ping!");
+    internetIsConnected = true;
+  }
+  else
+  {
+    Serial.println("Ping Failed!");
+    internetIsConnected = false;
+  }
+}
+
+void logEvent(bool isConnectedToWifi, bool isConnectedToInternet, String message)
 {
   if (!timeIsSynced)
     return;
@@ -63,7 +84,8 @@ void logEvent(bool connected, String message)
 
   DynamicJsonDocument jsonDoc(JSON_EVENT_SIZE_IN_BYTES);
   jsonDoc["eventTime"] = timestamp;
-  jsonDoc["isConnected"] = connected;
+  jsonDoc["isConnectedToWifi"] = isConnectedToWifi;
+  jsonDoc["isConnectedToInternet"] = isConnectedToInternet;
   jsonDoc["message"] = message;
 
   String logEntry;
@@ -75,45 +97,29 @@ void logEvent(bool connected, String message)
 
 void WiFiEventHandler(WiFiEvent_t event)
 {
-  if (event == SYSTEM_EVENT_STA_DISCONNECTED && !hasDisconnected)
+  if (event == SYSTEM_EVENT_STA_DISCONNECTED && !wifiHasDisconnectedFlag)
   {
-    logEvent(false, "WiFi disconnected");
-    hasDisconnected = true;
-    hasReconnected = false;
+    wifiHasDisconnectedFlag = true;
+    wifiHasReconnectedFlag = false;
+    wifiIsConnected = false;
+    internetIsConnected = false;
+    logEvent(wifiIsConnected, internetIsConnected, "WiFi disconnected");
     timeOfDisconnect = millis();
   }
   else if (event == SYSTEM_EVENT_STA_CONNECTED)
   {
-    if (hasDisconnected)
+    wifiIsConnected = true;
+    if (wifiHasDisconnectedFlag)
     {
-      logEvent(true, "WiFi reconnected");
-      hasReconnected = true;
+      checkInternetConnection();
+      logEvent(wifiIsConnected, internetIsConnected, "WiFi reconnected");
+      wifiHasReconnectedFlag = true;
     }
     else
     {
-      logEvent(true, "WiFi connected");
+      checkInternetConnection();
+      logEvent(wifiIsConnected, internetIsConnected, "WiFi connected");
     }
-  }
-}
-
-void heartbeatCheck()
-{
-  if (WiFi.status() != WL_CONNECTED)
-  {
-    unsigned long downtime = (millis() - timeOfDisconnect);
-    unsigned long seconds = downtime / 1000;
-    unsigned long minutes = seconds / 60;
-    seconds %= 60;
-
-    String message = "Heartbeat: WiFi has been down for " + String(minutes) + " minutes and " + String(seconds) + " seconds";
-    Serial.println(message);
-    logEvent(false, message);
-    Serial.println("WiFi attempting to reconnect...");
-    WiFi.reconnect();
-  }
-  else
-  {
-    logEvent(true, "Heartbeat: WiFi is up");
   }
 }
 
@@ -144,31 +150,83 @@ void sendLogsToServer()
     {
       Serial.println("Success!");
       logs.clear();
-      hasDisconnected = false;
-      hasReconnected = false;
+      wifiHasDisconnectedFlag = false;
+      wifiHasReconnectedFlag = false;
     }
     else
     {
       Serial.println("HTTP Request failed. Response code: " + String(httpResponseCode));
-      String response = http.getString();  // Capture the server's response
+      String response = http.getString(); // Capture the server's response
       Serial.println("Response from server: " + response);
     }
     http.end();
   }
 }
 
-void checkHeartbeat()
+void logHeartbeatStatus()
 {
-  if (currentTime - millisecondsSinceLastHeartbeat >= HEARTBEAT_INTERVAL_IN_MILLISECONDS)
+  if (WiFi.status() != WL_CONNECTED)
   {
-    millisecondsSinceLastHeartbeat = currentTime;
-    heartbeatCheck();
+    wifiIsConnected = false;
+    internetIsConnected = false;
+    unsigned long downtime = (millis() - timeOfDisconnect);
+    unsigned long downtimeSeconds = downtime / 1000;
+    unsigned long downtimeMinutes = downtimeSeconds / 60;
+    downtimeSeconds %= 60;
+
+    String message = "Heartbeat: WiFi has been down for " + String(downtimeMinutes) + " minutes and " + String(downtimeSeconds) + " seconds";
+    Serial.println(message);
+    logEvent(wifiIsConnected, internetIsConnected, message);
+    Serial.println("WiFi attempting to reconnect...");
+    WiFi.reconnect();
+  }
+  else
+  {
+    wifiIsConnected = true;
+
+    unsigned long timeSinceLastPing = currentTime - lastPingTime;
+    unsigned long pingSeconds = timeSinceLastPing / 1000;
+    unsigned long pingMinutes = pingSeconds / 60;
+    pingSeconds %= 60;
+
+    String message;
+    if (internetIsConnected)
+    {
+      message = "Heartbeat: WiFi is up. Last ping to the internet was " + String(pingMinutes) + " minutes and " + String(pingSeconds) + " seconds ago.";
+      logEvent(wifiIsConnected, internetIsConnected, message);
+    }
+    else
+    {
+      message = "Heartbeat: WiFi is up, but no internet connection. Last ping to the internet was " + String(pingMinutes) + " minutes and " + String(pingSeconds) + " seconds ago.";
+      logEvent(wifiIsConnected, internetIsConnected, message);
+      checkInternetConnection();
+    }
+  }
+}
+
+void monitorHeartbeat()
+{
+  if (currentTime - lastHeartbeatTime >= HEARTBEAT_INTERVAL_IN_MILLISECONDS)
+  {
+    lastHeartbeatTime = currentTime;
+    logHeartbeatStatus();
+  }
+}
+
+void monitorPingInterval()
+{
+  if (wifiHasReconnectedFlag ||
+      (currentTime - lastPingTime >= PING_INTERVAL_IN_MILLISECONDS) ||
+      (!wifiHasDisconnectedFlag && !internetIsConnected && currentTime - lastPingTime >= PING_DELAY_IN_MILLISECONDS))
+  {
+    lastPingTime = currentTime;
+    checkInternetConnection();
   }
 }
 
 void checkLogs()
 {
-  if ((currentTime - timeOfLastLog >= LOG_INTERVAL_IN_MILLISECONDS && WiFi.status() == WL_CONNECTED) || (hasDisconnected && hasReconnected))
+  if ((currentTime - timeOfLastLog >= LOG_INTERVAL_IN_MILLISECONDS && WiFi.status() == WL_CONNECTED) || (wifiHasDisconnectedFlag && wifiHasReconnectedFlag))
   {
     sendLogsToServer();
     timeOfLastLog = currentTime;
@@ -193,13 +251,20 @@ void setup()
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    logEvent(true, "WiFi connected");
+    wifiIsConnected = true;
+    logEvent(wifiIsConnected, internetIsConnected, "WiFi connected");
+    checkInternetConnection();
+    if (internetIsConnected)
+    {
+      logEvent(wifiIsConnected, internetIsConnected, "Internet connected");
+    }
   }
 }
 
 void loop()
 {
   currentTime = millis();
-  checkHeartbeat();
+  monitorHeartbeat();
+  monitorPingInterval();
   checkLogs();
 }
