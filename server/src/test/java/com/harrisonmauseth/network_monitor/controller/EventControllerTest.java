@@ -73,7 +73,7 @@ public class EventControllerTest {
     public void getDisconnectedEvents_returns_status_code_200_when_events_exist() throws Exception {
         List<Event> mockEvents = Arrays.asList(EVENT_4, EVENT_1);
 
-        when(eventDao.getDisconnectedEvents(anyInt())).thenReturn(mockEvents);
+        when(eventDao.getAllDisconnectedEvents(anyInt())).thenReturn(mockEvents);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/failed")
                         .param("limit", "10")
@@ -84,7 +84,7 @@ public class EventControllerTest {
 
     @Test
     public void getDisconnectedEvents_returns_empty_array_when_no_events_exist() throws Exception {
-        when(eventDao.getDisconnectedEvents(anyInt())).thenReturn(Collections.emptyList());
+        when(eventDao.getAllDisconnectedEvents(anyInt())).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT + "/failed")
                         .param("limit", "10")

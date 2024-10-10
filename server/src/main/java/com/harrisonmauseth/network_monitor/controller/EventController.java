@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,7 +45,7 @@ public class EventController {
     public List<Event> getDisconnectedEvents(@RequestParam(defaultValue = "0") int limit) {
         List<Event> events;
         try {
-            events = eventDao.getDisconnectedEvents(limit);
+            events = eventDao.getAllDisconnectedEvents(limit);
         } catch (DaoException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }

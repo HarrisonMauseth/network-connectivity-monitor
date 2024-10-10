@@ -56,10 +56,10 @@ public class JdbcEventDao implements EventDao {
     }
 
     @Override
-    public List<Event> getDisconnectedEvents(int limit) {
+    public List<Event> getAllDisconnectedEvents(int limit) {
         List<Event> events = new ArrayList<>();
         if (limit <= 0) {
-            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false ORDER BY eventTime DESC;";
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false OR isConnectedToInternet = false ORDER BY eventTime DESC;";
             try {
                 SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
                 while (results.next()) {
@@ -69,7 +69,7 @@ public class JdbcEventDao implements EventDao {
                 throw new DaoException("Unable to connect to database.");
             }
         } else {
-            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false ORDER BY eventTime DESC LIMIT ?;";
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false OR isConnectedToInternet = false ORDER BY eventTime DESC LIMIT ?;";
             try {
                 SqlRowSet results = jdbcTemplate.queryForRowSet(sql, limit);
                 while (results.next()) {
@@ -77,6 +77,60 @@ public class JdbcEventDao implements EventDao {
                 }
             } catch (CannotGetJdbcConnectionException e) {
                 throw new DaoException("Unable to connect to database.");
+            }
+        }
+        return events;
+    }
+
+    @Override
+    public List<Event> getDisconnectedWifiEvents(int limit) {
+        List<Event> events = new ArrayList<>();
+        if (limit <= 0) {
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false ORDER BY eventTime DESC;";
+            try {
+                SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
+                while (results.next()) {
+                    events.add(mapRowToEvent(results));
+                }
+            } catch (CannotGetJdbcConnectionException e) {
+                throw new DaoException("Unable to connect to the database.");
+            }
+        } else {
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToWifi = false ORDER BY eventTime DESC LIMIT ?;";
+            try {
+                SqlRowSet results = jdbcTemplate.queryForRowSet(sql, limit);
+                while (results.next()) {
+                    events.add(mapRowToEvent(results));
+                }
+            } catch (CannotGetJdbcConnectionException e) {
+                throw new DaoException("Unable to connect to the database.");
+            }
+        }
+        return events;
+    }
+
+    @Override
+    public List<Event> getDisconnectedInternetEvents(int limit) {
+        List<Event> events = new ArrayList<>();
+        if (limit <= 0) {
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToInternet = false ORDER BY eventTime DESC;";
+            try {
+                SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
+                while (results.next()) {
+                    events.add(mapRowToEvent(results));
+                }
+            } catch (CannotGetJdbcConnectionException e) {
+                throw new DaoException("Unable to connect to the database.");
+            }
+        } else {
+            String sql = "SELECT eventId, eventTime, isConnectedToWifi, isConnectedToInternet, message FROM events WHERE isConnectedToInternet = false ORDER BY eventTime DESC LIMIT ?;";
+            try {
+                SqlRowSet results = jdbcTemplate.queryForRowSet(sql, limit);
+                while (results.next()) {
+                    events.add(mapRowToEvent(results));
+                }
+            } catch (CannotGetJdbcConnectionException e) {
+                throw new DaoException("Unable to connect to the database.");
             }
         }
         return events;

@@ -22,12 +22,28 @@ public interface EventDao {
     List<Event> getAllEventsLimited(int limit);
 
     /**
-     * Get a list of failed connections limited by user.
+     * Get a list of failed connections for either Wi-Fi or internet limited by user.
      *
      * @param limit the number of results you wish to see
      * @return a list of failed events
      */
-    List<Event> getDisconnectedEvents(int limit);
+    List<Event> getAllDisconnectedEvents(int limit);
+
+    /**
+     * Get a list of events where the Wi-Fi disconnected, limited by user.
+     *
+     * @param limit the number of results you wish to see
+     * @return a list of failed Wi-Fi events
+     */
+    List<Event> getDisconnectedWifiEvents(int limit);
+
+    /**
+     * Get a list of events where the internet disconnected, limited by user.
+     *
+     * @param limit the number of results you wish to see
+     * @return a list of failed internet events
+     */
+    List<Event> getDisconnectedInternetEvents(int limit);
 
     /**
      * Get a specific event from the database.
