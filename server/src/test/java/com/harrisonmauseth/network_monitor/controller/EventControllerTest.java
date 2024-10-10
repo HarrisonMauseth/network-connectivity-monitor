@@ -70,8 +70,8 @@ public class EventControllerTest {
     }
 
     @Test
-    public void getDisconnectedEvents_returns_status_code_200_when_events_exist() throws Exception {
-        List<Event> mockEvents = Arrays.asList(EVENT_4, EVENT_1);
+    public void getAllDisconnectedEvents_returns_status_code_200_when_events_exist() throws Exception {
+        List<Event> mockEvents = Arrays.asList(EVENT_4, EVENT_2, EVENT_1);
 
         when(eventDao.getAllDisconnectedEvents(anyInt())).thenReturn(mockEvents);
 
@@ -83,10 +83,34 @@ public class EventControllerTest {
     }
 
     @Test
-    public void getDisconnectedEvents_returns_empty_array_when_no_events_exist() throws Exception {
+    public void getAllDisconnectedEvents_returns_empty_array_when_no_events_exist() throws Exception {
         when(eventDao.getAllDisconnectedEvents(anyInt())).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT + "/failed")
+                        .param("limit", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
+    public void getDisconnectedWifiEvents_returns_status_code_200_when_events_exist() throws Exception {
+        List<Event> mockEvents = Arrays.asList(EVENT_4, EVENT_1);
+
+        when(eventDao.getDisconnectedWifiEvents(anyInt())).thenReturn(mockEvents);
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/failed/wifi")
+                        .param("limit", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(toJsonArray(mockEvents)));
+    }
+
+    @Test
+    public void getDisconnectedWifiEvents_returns_an_empty_array_when_no_events_exist() throws Exception {
+        when(eventDao.getDisconnectedWifiEvents(anyInt())).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/failed/wifi")
                         .param("limit", "10")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

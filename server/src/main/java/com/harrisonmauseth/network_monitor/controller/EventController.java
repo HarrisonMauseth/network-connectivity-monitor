@@ -42,10 +42,21 @@ public class EventController {
     }
 
     @GetMapping(path = "/failed")
-    public List<Event> getDisconnectedEvents(@RequestParam(defaultValue = "0") int limit) {
+    public List<Event> getAllDisconnectedEvents(@RequestParam(defaultValue = "0") int limit) {
         List<Event> events;
         try {
             events = eventDao.getAllDisconnectedEvents(limit);
+        } catch (DaoException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+        }
+        return events;
+    }
+
+    @GetMapping(path = "/failed/wifi")
+    public List<Event> getDisconnectedWifiEvents(@RequestParam(defaultValue = "0") int limit) {
+        List<Event> events;
+        try {
+            events = eventDao.getDisconnectedWifiEvents(limit);
         } catch (DaoException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
