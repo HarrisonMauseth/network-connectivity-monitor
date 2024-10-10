@@ -20,6 +20,7 @@ While the sheet was useful in proving to the customer service team that it was a
 ### 1. **Wi-Fi Event Handling**
    - **Connection and Disconnection Events**: The ESP32 listens for Wi-Fi connection (`SYSTEM_EVENT_STA_CONNECTED`) and disconnection (`SYSTEM_EVENT_STA_DISCONNECTED`) events. Upon disconnection, a log is generated with the exact downtime, and reconnection triggers a "reconnect" log.
    - **Heartbeat Monitoring**: A heartbeat log is generated every 30 seconds, reflecting either a stable connection or the total downtime since the last disconnection (formatted as "X minutes and Y seconds"). This also triggers a reconnection in the event of a disconnect.
+   - **Internet Connectivity Monitoring**: Every 15 minutes, a ping to `8.8.8.8` is sent out to verify that the internet is still connected. Additionally, if a Wi-Fi disconnect event occurs, the system will send a ping to check upon reconnect. To prevent excessive pings, a failed ping needs to wait at least 15 seconds before attempting again.
 
 ### 2. **Memory Management and Log Handling**
    - **JSON Log Storage**: Each log entry is serialized into JSON format and stored in a `std::list<String>`. Logs contain:
