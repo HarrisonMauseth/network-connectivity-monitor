@@ -118,6 +118,30 @@ public class EventControllerTest {
     }
 
     @Test
+    public void getDisconnectedInternetEvents_returns_status_code_200_when_events_exist() throws Exception {
+        List<Event> mockEvents = Arrays.asList(EVENT_2, EVENT_1);
+
+        when(eventDao.getDisconnectedInternetEvents(anyInt())).thenReturn(mockEvents);
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/failed/internet")
+                        .param("limit", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(toJsonArray(mockEvents)));
+    }
+
+    @Test
+    public void getDisconnectedInternetEvents_returns_an_empty_array_when_no_events_exist() throws Exception {
+        when(eventDao.getDisconnectedInternetEvents(anyInt())).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/failed/internet")
+                        .param("limit", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
     public void logEvent_returns_201_when_created() throws Exception {
         when(eventDao.createEvent(any(Event.class))).thenReturn(EVENT_1);
 

@@ -63,6 +63,17 @@ public class EventController {
         return events;
     }
 
+    @GetMapping(path = "/failed/internet")
+    public List<Event> getDisconnectedInternetEvents(@RequestParam(defaultValue = "0") int limit) {
+        List<Event> events;
+        try {
+            events = eventDao.getDisconnectedInternetEvents(limit);
+        } catch (DaoException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+        }
+        return events;
+    }
+
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public Event log(@Valid @RequestBody Event eventToCreate) {
